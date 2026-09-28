@@ -39,16 +39,14 @@ jobs:
     steps:
       - name: Check Render Deploy Hook
         env:
-         - name: Check Render Deploy Hook
-  env:
-    RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-  run: |
-    if [ -z "$RENDER_DEPLOY_HOOK" ]; then
-      echo "ERROR: RENDER_DEPLOY_HOOK secret is missing."
-      exit 1
-    fi
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "ERROR: RENDER_DEPLOY_HOOK secret is missing."
+            exit 1
+          fi
 
-    echo "Render Deploy Hook is configured."
+          echo "Render Deploy Hook is configured."
 
       - name: Deploy to Render
         env:
