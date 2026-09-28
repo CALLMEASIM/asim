@@ -17,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -30,11 +30,22 @@ jobs:
         run: npm test
 
   deploy:
-    name: Deploy Application
+    name: Deploy to Render
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to Render
-        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+      - name: Trigger Render Deployment
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "ERROR: RENDER_DEPLOY_HOOK secret is not configured."
+            exit 1
+          fi
+
+          curl --fail --show-error --silent \
+            -X POST "$RENDER_DEPLOY_HOOK"
+
+          echo "Render deployment triggered successfully."
