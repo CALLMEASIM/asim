@@ -5,13 +5,9 @@ on:
     branches:
       - main
 
-  pull_request:
-    branches:
-      - main
-
 jobs:
   test:
-    name: Test Code
+    name: Run Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -28,15 +24,14 @@ jobs:
         run: npm ci
 
       - name: Run Tests
-        run: npm test
+        run: npm test -- --watchAll=false
 
   deploy:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
 
+    # Deploy ONLY if the test job passes
     needs: test
-
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout Code
@@ -52,10 +47,22 @@ jobs:
         run: npm ci
 
       - name: Install Vercel CLI
-        run: npm install --global vercel
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Configuration
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.PROJECT_ID }}
+
+      - name: Build Project
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.PROJECT_ID }}
 
       - name: Deploy to Vercel
-        run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.PROJECT_ID }}
